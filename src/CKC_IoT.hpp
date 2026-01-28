@@ -1,4 +1,3 @@
-#include <CKC_IoT.h>
 #include <HTTPClient.h>
 void CKC::begin(String sta_ssid, String sta_pass)
 {
@@ -65,15 +64,13 @@ void CKC::sendDATA(String Data1, String Data2, String Data3, String Data4, Strin
     }
     http.end();
 }
-
 void CKC::reconnectWifi(String sta_ssid, String sta_pass)
 {
-
+    ssidSTA = sta_ssid;
+    passSTA = sta_pass;
     static unsigned long lastTry = 0;
-
     if (millis() - lastTry < 5000)
         return;
-
     lastTry = millis();
     if (WiFi.status() == WL_CONNECTED)
         return;
@@ -109,4 +106,31 @@ void CKC::reconnectWifi(String sta_ssid, String sta_pass)
         WiFi.disconnect();
         WiFi.begin(ssidSTA.c_str(), passSTA.c_str());
     }
+}
+void CKC::virtualWrite(String pin_, int value_)
+{
+    if (vpinCount >= CKC_MAX_VPIN)
+        return;
+    vpin[vpinCount].pin = pin_;
+    vpin[vpinCount].value = String(value_);
+    vpinCount++;
+}
+void CKC::virtualWrite(String pin_, float value_)
+{
+    if (vpinCount >= CKC_MAX_VPIN)
+        return;
+    vpin[vpinCount].pin = pin_;
+    vpin[vpinCount].value = String(value_, 2);
+    vpinCount++;
+}
+void CKC::flushVirtual()
+{
+    for (int i = 0; i < vpinCount; i++)
+    {
+        Serial.print("[CKC] ");
+        Serial.print(vpin[i].pin);
+        Serial.print(" = ");
+        Serial.println(vpin[i].value);
+    }
+    vpinCount = 0;
 }
