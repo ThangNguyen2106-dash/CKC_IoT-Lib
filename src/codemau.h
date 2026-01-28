@@ -1,5 +1,5 @@
 #include <khaibao.h>
-#include <CKC_IoT.hpp>
+#include <CKC_IoT.h>
 CKC CKC_IoT;
 void setup()
 {
