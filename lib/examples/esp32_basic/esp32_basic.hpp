@@ -1,6 +1,5 @@
 #include <khaibao.h>
 #include <CKC_IoT.h>
-CKC CKC_IoT;
 void setup()
 {
   Serial.begin(115200);
