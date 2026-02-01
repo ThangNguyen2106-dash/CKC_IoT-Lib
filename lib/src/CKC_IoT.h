@@ -17,10 +17,11 @@ IPAddress local_ip(192, 168, 1, 1);
 IPAddress subnet(255, 255, 255, 0);
 IPAddress ipa;
 WebServer server(80);
-WiFiUDP ntpUDP;
 WiFiClient client;
+WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org");
 unsigned long epochTime;
+
 CKC CKC_IoT;
 String CKC::getDateTime()
 {
@@ -45,9 +46,9 @@ String CKC::getDateTime()
 
 unsigned long CKC::getTime()
 {
-    timeClient.update();
-    unsigned long now = timeClient.getEpochTime();
-    return now;
+    if (!timeClient.update())
+        return 0;
+    return timeClient.getEpochTime();
 }
 
 void CKC::syncTime()
@@ -112,11 +113,10 @@ void CKC::sendDATA(String Token_, String ID_, String Data1)
         Serial.println("[CKC] WiFi not connected");
         return;
     }
-    // WiFiClientSecure client;
-    WiFiClientSecure *client = new WiFiClientSecure;
-    client->setInsecure();
-    HTTPClient https;
-    https.begin(*client, "https://demo.api.kthd.vn/v1/cool-room");
+    static WiFiClientSecure client;
+    client.setInsecure();
+    static HTTPClient https;
+    https.begin(client, "https://demo.api.kthd.vn/v1/cool-machine");
     https.addHeader("Content-Type", "application/json");
     String json;
     String dt_post = getDateTime();
@@ -137,12 +137,12 @@ void CKC::sendDATA(String Token_, String ID_, String Data1)
     json += "\"field_11\":" + Data1 + ",";
     json += "\"post_at\":\"" + dt_post + "\"";
     json += "}";
-    Serial.println("[CKC] Sending DATA...");
-    Serial.println(json);
+    Serial.println("[CKC] Sending DATA...:");
+    Serial.print(json);
     int httpsCode = https.POST(json);
     Serial.println("[CKC] HTTP CODE = " + String(httpsCode));
     https.end();
-    client->stop();
+    client.stop();
 }
 
 void CKC::readDATA(String &Data1, String &Data2, String &Data3, String &Data4, String &Data5)
