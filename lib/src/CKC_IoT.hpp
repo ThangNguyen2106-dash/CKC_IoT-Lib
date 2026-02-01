@@ -11,19 +11,17 @@ class CKC
 {
 public:
     CKC() {};
+    String getDateTime();
+    unsigned long getTime();
+    void syncTime();
     void begin(String sta_ssid, String sta_pass);
     void end();
-    void sendDATA(String Data1, String Data2, String Data3, String Data4, String Data5);
+    void sendDATA(String Token_, String ID_, String Data1);
+    void readDATA(String &Data1, String &Data2, String &Data3, String &Data4, String &Data5);
     void reconnectWifi(String sta_ssid, String sta_pass);
-    void virtualWrite(String pin_, float value_);
-    void virtualWrite(String pin_, int value_);
-    void virtualRead(String pin_);
-    void flushVirtual();
 
 private:
     String ssidSTA, passSTA;
     String Data1, Data2, Data3, Data4, Data5;
-    CKC_VPin vpin[CKC_MAX_VPIN];
-    uint8_t vpinCount = 0;
 };
 #endif

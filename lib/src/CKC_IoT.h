@@ -1,8 +1,66 @@
 #include <CKC_IoT.hpp>
 #include <WiFi.h>
+#include <WiFiMulti.h>
 #include <HTTPClient.h>
+#include <WiFiClientSecure.h>
+#include <WiFiClient.h>
+#include <NTPClient.h>
+#include <WiFiUdp.h>
+#include <EEPROM.h>
+#include <WebServer.h>
+#include <ESPmDNS.h>
+#include <Update.h>
+#include "updatedserver.h"
 #include <Arduino.h>
+IPAddress gateway(192, 168, 1, 1);
+IPAddress local_ip(192, 168, 1, 1);
+IPAddress subnet(255, 255, 255, 0);
+IPAddress ipa;
+WebServer server(80);
+WiFiUDP ntpUDP;
+WiFiClient client;
+NTPClient timeClient(ntpUDP, "pool.ntp.org", 7 * 3600, 60000);
 CKC CKC_IoT;
+String CKC::getDateTime()
+{
+    time_t epoch = timeClient.getEpochTime();
+    struct tm *ptm = gmtime(&epoch);
+    if (!ptm)
+        return "";
+    char buffer[32];
+    snprintf(buffer, sizeof(buffer),
+             "%04d-%02d-%02dT%02d:%02d:%02dZ",
+             ptm->tm_year + 1900,
+             ptm->tm_mon + 1,
+             ptm->tm_mday,
+             ptm->tm_hour,
+             ptm->tm_min,
+             ptm->tm_sec);
+    return String(buffer);
+}
+
+unsigned long CKC::getTime()
+{
+    return timeClient.getEpochTime();
+}
+
+void CKC::syncTime()
+{
+    if (WiFi.status() != WL_CONNECTED)
+        return;
+    timeClient.begin();
+    for (int i = 0; i < 5; i++)
+    {
+        if (timeClient.update())
+        {
+            Serial.println("[CKC] NTP synced");
+            return;
+        }
+        delay(1000);
+    }
+    Serial.println("[CKC] NTP sync failed");
+}
+
 void CKC::begin(String sta_ssid, String sta_pass)
 {
     ssidSTA = sta_ssid;
@@ -19,6 +77,7 @@ void CKC::begin(String sta_ssid, String sta_pass)
     {
         WiFi.mode(WIFI_STA);
         Serial.println("[CKC] Connected! ESP32 IP: " + WiFi.localIP().toString());
+        CKC_IoT.syncTime();
     }
     else
     {
@@ -32,42 +91,83 @@ void CKC::begin(String sta_ssid, String sta_pass)
         Serial.println("[CKC] Pass: 123456789");
     }
 }
+
 void CKC::end()
 {
     WiFi.disconnect(true);
     WiFi.mode(WIFI_OFF);
     Serial.println("[CKC] WiFi stopped");
 }
-void CKC::sendDATA(String Data1, String Data2, String Data3, String Data4, String Data5)
+
+void CKC::sendDATA(String Token_, String ID_, String Data1)
 {
     if (WiFi.status() != WL_CONNECTED)
     {
-        Serial.println("[CKC] NO WiFi → DATA NOT SENT");
+        Serial.println("[CKC] WiFi not connected");
         return;
     }
+    // WiFiClientSecure client;
+    WiFiClientSecure *client = new WiFiClientSecure;
+    client->setInsecure();
     HTTPClient http;
-    String url = "http://10.240.14.201:3000/data";
-    http.begin(url);
+    http.begin(*client, "https://api.kthd.vn/v1/cool-room");
     http.addHeader("Content-Type", "application/json");
-    String json = "{";
-    json += "\"data1\":\"" + Data1 + "\",";
-    json += "\"data2\":\"" + Data2 + "\",";
-    json += "\"data3\":\"" + Data3 + "\",";
-    json += "\"data4\":\"" + Data4 + "\",";
-    json += "\"data5\":\"" + Data5 + "\"";
+    String json;
+    String dt_post = getDateTime();
+    json.reserve(200);
+    json = "{";
+    json += "\"mac_address\":\"" + Token_ + "\",";
+    json += "\"device_id\":\"" + ID_ + "\",";
+    json += "\"field_1\":" + Data1 + ",";
+    json += "\"field_2\":" + Data1 + ",";
+    json += "\"field_3\":" + Data1 + ",";
+    json += "\"field_4\":" + Data1 + ",";
+    json += "\"field_5\":" + Data1 + ",";
+    json += "\"field_6\":" + Data1 + ",";
+    json += "\"field_7\":" + Data1 + ",";
+    json += "\"field_8\":" + Data1 + ",";
+    json += "\"field_9\":" + Data1 + ",";
+    json += "\"field_10\":" + Data1 + ",";
+    json += "\"field_11\":" + Data1 + ",";
+    json += "\"post_at\":\"" + dt_post + "\"";
     json += "}";
+    Serial.println("[CKC] Sending DATA...");
+    Serial.println(json);
     int httpCode = http.POST(json);
+    Serial.println("[CKC] HTTP CODE = " + String(httpCode));
+    http.end();
+    // client->stop();
+}
+
+void CKC::readDATA(String &Data1, String &Data2, String &Data3, String &Data4, String &Data5)
+{
+    if (WiFi.status() != WL_CONNECTED)
+    {
+        reconnectWifi(ssidSTA, passSTA);
+        return;
+    }
+
+    HTTPClient http;
+    http.begin("http://your-server/read.php"); // URL của bạn
+    int httpCode = http.GET();
+
     if (httpCode > 0)
     {
-        Serial.println("[CKC] DATA SENT OK");
-        Serial.println(http.getString());
-    }
-    else
-    {
-        Serial.println("[CKC] SEND FAILED");
+        String payload = http.getString();
+
+        int p1 = payload.indexOf('|');
+        int p2 = payload.indexOf('|', p1 + 1);
+        int p3 = payload.indexOf('|', p2 + 1);
+        int p4 = payload.indexOf('|', p3 + 1);
+        Data1 = payload.substring(0, p1);
+        Data2 = payload.substring(p1 + 1, p2);
+        Data3 = payload.substring(p2 + 1, p3);
+        Data4 = payload.substring(p3 + 1, p4);
+        Data5 = payload.substring(p4 + 1);
     }
     http.end();
 }
+
 void CKC::reconnectWifi(String sta_ssid, String sta_pass)
 {
     ssidSTA = sta_ssid;
@@ -110,31 +210,4 @@ void CKC::reconnectWifi(String sta_ssid, String sta_pass)
         WiFi.disconnect();
         WiFi.begin(ssidSTA.c_str(), passSTA.c_str());
     }
-}
-void CKC::virtualWrite(String pin_, int value_)
-{
-    if (vpinCount >= CKC_MAX_VPIN)
-        return;
-    vpin[vpinCount].pin = pin_;
-    vpin[vpinCount].value = String(value_);
-    vpinCount++;
-}
-void CKC::virtualWrite(String pin_, float value_)
-{
-    if (vpinCount >= CKC_MAX_VPIN)
-        return;
-    vpin[vpinCount].pin = pin_;
-    vpin[vpinCount].value = String(value_, 2);
-    vpinCount++;
-}
-void CKC::flushVirtual()
-{
-    for (int i = 0; i < vpinCount; i++)
-    {
-        Serial.print("[CKC] ");
-        Serial.print(vpin[i].pin);
-        Serial.print(" = ");
-        Serial.println(vpin[i].value);
-    }
-    vpinCount = 0;
 }
