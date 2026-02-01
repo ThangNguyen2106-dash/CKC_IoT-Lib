@@ -19,29 +19,35 @@ IPAddress ipa;
 WebServer server(80);
 WiFiUDP ntpUDP;
 WiFiClient client;
-NTPClient timeClient(ntpUDP, "pool.ntp.org", 7 * 3600, 60000);
+NTPClient timeClient(ntpUDP, "pool.ntp.org");
+unsigned long epochTime;
 CKC CKC_IoT;
 String CKC::getDateTime()
 {
-    time_t epoch = timeClient.getEpochTime();
-    struct tm *ptm = gmtime(&epoch);
+    timeClient.update();
+    time_t epoch = timeClient.getEpochTime() + 7 * 3600;
+    struct tm *ptm = gmtime((time_t *)&epoch);
     if (!ptm)
-        return "";
-    char buffer[32];
-    snprintf(buffer, sizeof(buffer),
-             "%04d-%02d-%02dT%02d:%02d:%02dZ",
-             ptm->tm_year + 1900,
-             ptm->tm_mon + 1,
-             ptm->tm_mday,
-             ptm->tm_hour,
-             ptm->tm_min,
-             ptm->tm_sec);
+    {
+        return "1970-01-01T00:00:00Z";
+    }
+    char buffer[30];
+    sprintf(buffer,
+            "%04d-%02d-%02dT%02d:%02d:%02dZ",
+            ptm->tm_year + 1900,
+            ptm->tm_mon + 1,
+            ptm->tm_mday,
+            ptm->tm_hour,
+            ptm->tm_min,
+            ptm->tm_sec);
     return String(buffer);
 }
 
 unsigned long CKC::getTime()
 {
-    return timeClient.getEpochTime();
+    timeClient.update();
+    unsigned long now = timeClient.getEpochTime();
+    return now;
 }
 
 void CKC::syncTime()
@@ -109,9 +115,9 @@ void CKC::sendDATA(String Token_, String ID_, String Data1)
     // WiFiClientSecure client;
     WiFiClientSecure *client = new WiFiClientSecure;
     client->setInsecure();
-    HTTPClient http;
-    http.begin(*client, "https://api.kthd.vn/v1/cool-room");
-    http.addHeader("Content-Type", "application/json");
+    HTTPClient https;
+    https.begin(*client, "https://demo.api.kthd.vn/v1/cool-room");
+    https.addHeader("Content-Type", "application/json");
     String json;
     String dt_post = getDateTime();
     json.reserve(200);
@@ -133,10 +139,10 @@ void CKC::sendDATA(String Token_, String ID_, String Data1)
     json += "}";
     Serial.println("[CKC] Sending DATA...");
     Serial.println(json);
-    int httpCode = http.POST(json);
-    Serial.println("[CKC] HTTP CODE = " + String(httpCode));
-    http.end();
-    // client->stop();
+    int httpsCode = https.POST(json);
+    Serial.println("[CKC] HTTP CODE = " + String(httpsCode));
+    https.end();
+    client->stop();
 }
 
 void CKC::readDATA(String &Data1, String &Data2, String &Data3, String &Data4, String &Data5)
