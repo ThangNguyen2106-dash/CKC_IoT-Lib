@@ -140,7 +140,7 @@ void CKC::sendDATA(String Token_, String ID_, String Data1)
     Serial.print("[CKC] Sending DATA...:");
     Serial.print(json);
     int httpsCode = https.POST(json);
-    Serial.println("[CKC] HTTP CODE = " + String(httpsCode));
+    Serial.println("\n[CKC] HTTP CODE = " + String(httpsCode));
     https.end();
     client.stop();
 }

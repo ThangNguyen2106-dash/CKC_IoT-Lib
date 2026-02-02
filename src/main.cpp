@@ -16,9 +16,9 @@ void loop()
   {
     digitalWrite(26, HIGH);
 
-    if (millis() - lastSend >= 1000)
+    if (millis() - lastSend >= 30000)
     {
-      lastSend = millis();
+      lastSend = millis(); 
       float temp = random(250, 350) / 10.0;
       CKC_IoT.sendDATA(AUTH_TOKEN, ID, String(temp));
     }
