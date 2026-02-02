@@ -137,14 +137,14 @@ void CKC::sendDATA(String Token_, String ID_, String Data1)
     json += "\"field_11\":" + Data1 + ",";
     json += "\"post_at\":\"" + dt_post + "\"";
     json += "}";
-    Serial.println("[CKC] Sending DATA...:");
+    Serial.print("[CKC] Sending DATA...:");
     Serial.print(json);
     int httpsCode = https.POST(json);
     Serial.println("[CKC] HTTP CODE = " + String(httpsCode));
     https.end();
     client.stop();
 }
-
+//------Coming Soon-----//
 void CKC::readDATA(String &Data1, String &Data2, String &Data3, String &Data4, String &Data5)
 {
     if (WiFi.status() != WL_CONNECTED)
@@ -156,11 +156,9 @@ void CKC::readDATA(String &Data1, String &Data2, String &Data3, String &Data4, S
     HTTPClient http;
     http.begin("http://your-server/read.php"); // URL của bạn
     int httpCode = http.GET();
-
     if (httpCode > 0)
     {
         String payload = http.getString();
-
         int p1 = payload.indexOf('|');
         int p2 = payload.indexOf('|', p1 + 1);
         int p3 = payload.indexOf('|', p2 + 1);

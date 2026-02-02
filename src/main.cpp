@@ -6,7 +6,7 @@ void setup()
 {
   pinMode(26, OUTPUT);
   Serial.begin(115200);
-  CKC_IoT.begin("Thắng Nguyễn", "21062005");
+  CKC_IoT.begin("MakerSpaceLab_2.4Ghz", "Maker2025");
   String TOKEN = String(WiFi.macAddress());
 }
 void loop()
