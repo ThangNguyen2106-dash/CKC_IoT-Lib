@@ -70,6 +70,8 @@ void CKC_MQTT::sendData(String Topic_s, String Data)
     mqttClient.publish(Topic_s.c_str(), Data.c_str());
     Serial.println("[CKC] Sent: " + Topic_s + " -> " + Data);
 }
+
+// ------------------------------COMMING SOON -------------------------//
 void CKC_MQTT::receiveData(String Topic_r)
 {
     if (WiFi.status() != WL_CONNECTED)
