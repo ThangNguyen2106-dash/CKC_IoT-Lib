@@ -1,12 +1,14 @@
 #ifndef CKC_H
 #define CKC_H
+#include <Arduino.h>
 #include <WiFi.h>
-#define CKC_MAX_VPIN 10
-struct CKC_VPin
-{
-    String pin;
-    String value;
-};
+#include <WebServer.h>
+#include <WiFiMulti.h>
+#include <HTTPClient.h>
+#include <WiFiClientSecure.h>
+#include <WiFiClient.h>
+#include <NTPClient.h>
+#include <WiFiUdp.h>
 class CKC
 {
 public:
@@ -17,7 +19,7 @@ public:
     void begin(String sta_ssid, String sta_pass);
     void end();
     void sendDATA(String Token_, String ID_, String Data1);
-    void readDATA(String &Data1, String &Data2, String &Data3, String &Data4, String &Data5);
+    void readDATA();
     void reconnectWifi(String sta_ssid, String sta_pass);
 
 private:

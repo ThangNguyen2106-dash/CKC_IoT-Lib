@@ -11,8 +11,6 @@ const char *MQTT_ID = "76257abadb724de09f59f274b3c3e098";
 const char *MQTT_USERNAME = "hivemq.webclient.1770102461698";
 const char *MQTT_PASS = "9pf7TvU#&G3rKo<>g8DX";
 
-int timeupdate = 10000;
-
 void setup()
 {
   pinMode(26, OUTPUT);
@@ -28,7 +26,7 @@ void loop()
   {
     digitalWrite(26, HIGH);
 
-    if (millis() - lastSend >= timeupdate)
+    if (millis() - lastSend >=5000)
     {
       lastSend = millis();
       float temp = random(250, 350) / 10.0;

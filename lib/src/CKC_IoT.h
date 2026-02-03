@@ -1,17 +1,4 @@
 #include <CKC_IoT.hpp>
-#include <WiFi.h>
-#include <WiFiMulti.h>
-#include <HTTPClient.h>
-#include <WiFiClientSecure.h>
-#include <WiFiClient.h>
-#include <NTPClient.h>
-#include <WiFiUdp.h>
-#include <EEPROM.h>
-#include <WebServer.h>
-#include <ESPmDNS.h>
-#include <Update.h>
-#include "updatedserver.h"
-#include <Arduino.h>
 IPAddress gateway(192, 168, 1, 1);
 IPAddress local_ip(192, 168, 1, 1);
 IPAddress subnet(255, 255, 255, 0);
@@ -99,79 +86,6 @@ void CKC::begin(String sta_ssid, String sta_pass)
     }
 }
 
-void CKC::end()
-{
-    WiFi.disconnect(true);
-    WiFi.mode(WIFI_OFF);
-    Serial.println("[CKC] WiFi stopped");
-}
-
-void CKC::sendDATA(String Token_, String ID_, String Data1)
-{
-    if (WiFi.status() != WL_CONNECTED)
-    {
-        Serial.println("[CKC] WiFi not connected");
-        return;
-    }
-    static WiFiClientSecure client;
-    client.setInsecure();
-    static HTTPClient https;
-    https.begin(client, "https://demo.api.kthd.vn/v1/cool-machine");
-    https.addHeader("Content-Type", "application/json");
-    String json;
-    String dt_post = getDateTime();
-    json.reserve(200);
-    json = "{";
-    json += "\"mac_address\":\"" + Token_ + "\",";
-    json += "\"device_id\":\"" + ID_ + "\",";
-    json += "\"field_1\":" + Data1 + ",";
-    json += "\"field_2\":" + Data1 + ",";
-    json += "\"field_3\":" + Data1 + ",";
-    json += "\"field_4\":" + Data1 + ",";
-    json += "\"field_5\":" + Data1 + ",";
-    json += "\"field_6\":" + Data1 + ",";
-    json += "\"field_7\":" + Data1 + ",";
-    json += "\"field_8\":" + Data1 + ",";
-    json += "\"field_9\":" + Data1 + ",";
-    json += "\"field_10\":" + Data1 + ",";
-    json += "\"field_11\":" + Data1 + ",";
-    json += "\"post_at\":\"" + dt_post + "\"";
-    json += "}";
-    Serial.print("[CKC] Sending DATA...:");
-    Serial.print(json);
-    int httpsCode = https.POST(json);
-    Serial.println("\n[CKC] HTTP CODE = " + String(httpsCode));
-    https.end();
-    client.stop();
-}
-//------Coming Soon-----//
-void CKC::readDATA(String &Data1, String &Data2, String &Data3, String &Data4, String &Data5)
-{
-    if (WiFi.status() != WL_CONNECTED)
-    {
-        reconnectWifi(ssidSTA, passSTA);
-        return;
-    }
-
-    HTTPClient http;
-    http.begin("http://your-server/read.php"); // URL của bạn
-    int httpCode = http.GET();
-    if (httpCode > 0)
-    {
-        String payload = http.getString();
-        int p1 = payload.indexOf('|');
-        int p2 = payload.indexOf('|', p1 + 1);
-        int p3 = payload.indexOf('|', p2 + 1);
-        int p4 = payload.indexOf('|', p3 + 1);
-        Data1 = payload.substring(0, p1);
-        Data2 = payload.substring(p1 + 1, p2);
-        Data3 = payload.substring(p2 + 1, p3);
-        Data4 = payload.substring(p3 + 1, p4);
-        Data5 = payload.substring(p4 + 1);
-    }
-    http.end();
-}
-
 void CKC::reconnectWifi(String sta_ssid, String sta_pass)
 {
     ssidSTA = sta_ssid;
@@ -213,5 +127,72 @@ void CKC::reconnectWifi(String sta_ssid, String sta_pass)
         Serial.println("[CKC] STA lost → reconnecting");
         WiFi.disconnect();
         WiFi.begin(ssidSTA.c_str(), passSTA.c_str());
+    }
+}
+
+void CKC::end()
+{
+    WiFi.disconnect(true);
+    WiFi.mode(WIFI_OFF);
+    Serial.println("[CKC] WiFi stopped");
+}
+
+void CKC::sendDATA(String Token_, String ID_, String Data1)
+{
+    if (WiFi.status() != WL_CONNECTED)
+    {
+        Serial.println("[CKC] WiFi not connected");
+        return;
+    }
+    static WiFiClientSecure client;
+    client.setInsecure(); // hàm cài đặt bỏ qua bước xác thực
+    static HTTPClient https;
+    https.begin(client, "https://demo.api.kthd.vn/v1/cool-machine");
+    https.addHeader("Content-Type", "application/json");
+    String data_send;
+    String dt_post = getDateTime();
+    data_send.reserve(200); // hàm xin chổ trống ram cho chuỗi kí tự là 200 kí tự
+    data_send = "{";
+    data_send += "\"mac_address\":\"" + Token_ + "\",";
+    data_send += "\"device_id\":\"" + ID_ + "\",";
+    data_send += "\"field_1\":" + Data1 + ",";
+    data_send += "\"field_2\":" + Data1 + ",";
+    data_send += "\"field_3\":" + Data1 + ",";
+    data_send += "\"field_4\":" + Data1 + ",";
+    data_send += "\"field_5\":" + Data1 + ",";
+    data_send += "\"field_6\":" + Data1 + ",";
+    data_send += "\"field_7\":" + Data1 + ",";
+    data_send += "\"field_8\":" + Data1 + ",";
+    data_send += "\"field_9\":" + Data1 + ",";
+    data_send += "\"field_10\":" + Data1 + ",";
+    data_send += "\"field_11\":" + Data1 + ",";
+    data_send += "\"post_at\":\"" + dt_post + "\"";
+    data_send += "}";
+    Serial.print("[CKC] Sending DATA...:");
+    Serial.print(data_send);
+    int httpsCode = https.POST(data_send); // hàm kiểm tra lỗi và post data lên server
+    Serial.println("\n[CKC] HTTP CODE = " + String(httpsCode));
+    https.end();
+    client.stop();
+}
+//------Coming Soon-----//
+void CKC::readDATA()
+{
+    if (WiFi.status() != WL_CONNECTED)
+    {
+        Serial.println("[CKC] WiFi not connected");
+        return;
+    }
+    static WiFiClientSecure client;
+    client.setInsecure();
+    static HTTPClient https;
+    https.begin(client, "https://demo.api.kthd.vn/v1/cool-machine");
+    https.addHeader("Content-Type", "application/json");
+    String data_receive;
+    int httpCode = https.GET();
+    if (httpCode > 0)
+    {
+        data_receive = https.getString();
+        Serial.print(data_receive);
     }
 }
