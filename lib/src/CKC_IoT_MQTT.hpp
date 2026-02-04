@@ -14,8 +14,15 @@ private:
     String mqttUser;
     String mqttPassword;
     String Data_receive;
+
 public:
-    void begin(String WiFiID, String PassWiFi,  String MQTT_server, uint16_t MQTT_Port,  String MQTT_ID, String MQTT_user, String MQTT_pass);
+    void begin(String WiFiID, 
+        String PassWiFi, 
+        String MQTT_server, 
+        uint16_t MQTT_Port, 
+        String MQTT_ID, 
+        String MQTT_user, 
+        String MQTT_pass);
     void run();
     void sendData(String Topic_s, String Data);
     void receiveData(String Topic_r);

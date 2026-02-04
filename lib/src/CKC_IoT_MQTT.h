@@ -2,7 +2,13 @@
 WiFiClientSecure server;
 PubSubClient mqttClient(server);
 CKC_MQTT CKC_IoT_MQTT;
-void CKC_MQTT::begin(String WiFiID, String PassWiFi, String MQTT_server, uint16_t MQTT_Port, String MQTT_ID, String MQTT_user, String MQTT_pass)
+void CKC_MQTT::begin(String WiFiID,
+                     String PassWiFi,
+                     String MQTT_server,
+                     uint16_t MQTT_Port,
+                     String MQTT_ID,
+                     String MQTT_user,
+                     String MQTT_pass)
 {
     ssidSTA = WiFiID;
     passSTA = PassWiFi;
