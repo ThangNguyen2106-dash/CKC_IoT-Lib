@@ -1,15 +1,15 @@
+#include <khaibao.h>
 #include <CKC_IoT.h>
 const char *Ten_WiFi = "MakerSpaceLab_2.4Ghz";
 const char *Pass_WiFi = "Maker2025";
 const char *AUTH_TOKEN = "14:08:08:A6:41:60";
-const char *MQTT_Server = "";
-const int MQTT_PORT = 11234;
 const char *ID = "PLG_TEST123";
+int timeupdate = 10000;
 void setup()
 {
   pinMode(26, OUTPUT);
   Serial.begin(115200);
-  CKC_IoT.begin(Ten_WiFi, Pass_WiFi);
+  CKC_IoT_API.begin(Ten_WiFi, Pass_WiFi);
   String TOKEN = String(WiFi.macAddress());
 }
 void loop()
@@ -19,11 +19,11 @@ void loop()
   {
     digitalWrite(26, HIGH);
 
-    if (millis() - lastSend >= 30000)
+    if (millis() - lastSend >= timeupdate)
     {
       lastSend = millis();
       float temp = random(250, 350) / 10.0;
-      CKC_IoT.sendDATA(AUTH_TOKEN, ID, String(temp));
+      CKC_IoT_API.sendDATA(AUTH_TOKEN, ID, String(temp));
     }
   }
   else

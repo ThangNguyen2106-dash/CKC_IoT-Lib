@@ -1,5 +1,5 @@
 #include <khaibao.h>
-#include <CKC_IoT_MQTT.h>
+#include <CKC_IoT.h>
 
 const char *Ten_WiFi = "MakerSpaceLab_2.4Ghz";
 const char *Pass_WiFi = "Maker2025";
@@ -19,7 +19,6 @@ void setup()
   Serial.begin(115200);
   CKC_IoT_MQTT.begin(Ten_WiFi, Pass_WiFi, MQTT_Server, MQTT_PORT, MQTT_ID, MQTT_USERNAME, MQTT_PASS);
 }
-
 void loop()
 {
   CKC_IoT_MQTT.run();
@@ -32,7 +31,9 @@ void loop()
     {
       lastSend = millis();
       float temp = random(250, 350) / 10.0;
+      float humidity = random(70, 80);
       CKC_IoT_MQTT.sendData("NHIET", String(temp));
+      CKC_IoT_MQTT.sendData("DO AM", String(humidity));
     }
   }
   else
