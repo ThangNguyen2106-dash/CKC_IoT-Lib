@@ -14,6 +14,7 @@ private:
     String mqttUser;
     String mqttPassword;
     String Data_receive;
+
 public:
     void begin(String WiFiID,
                String PassWiFi,
@@ -35,7 +36,7 @@ void CKC_MQTT::begin(String WiFiID,
                      uint16_t MQTT_Port,
                      String MQTT_ID,
                      String MQTT_user,
-                     String MQTT_pass)
+                     String MQTT_pass) // Hàm cấu hình Wifi và set up MQTT Server
 {
     ssidSTA = WiFiID;
     passSTA = PassWiFi;
@@ -78,13 +79,12 @@ void CKC_MQTT::begin(String WiFiID,
     }
 }
 
-void CKC_MQTT::run()
+void CKC_MQTT::run() // hàm hoạt động của MQTT
 {
     if (mqttClient.connected())
         mqttClient.loop();
 }
-
-void CKC_MQTT::sendData(String Topic_s, String Data)
+void CKC_MQTT::sendData(String Topic_s, String Data) // gửi dữ liệu kèm theo TOPIC đến MQTT Server, đồng thời kiểm tra kết nỗi trước khi gửi
 {
     if (WiFi.status() != WL_CONNECTED)
     {
@@ -104,26 +104,4 @@ void CKC_MQTT::sendData(String Topic_s, String Data)
     mqttClient.publish(Topic_s.c_str(), Data.c_str());
     Serial.println("[CKC] Sent: " + Topic_s + " -> " + Data);
 }
-
-// ------------------------------COMMING SOON -------------------------//
-void CKC_MQTT::receiveData(String Topic_r)
-{
-    if (WiFi.status() != WL_CONNECTED)
-    {
-        Serial.println("[CKC] WiFi lost");
-        return;
-    }
-    if (!mqttClient.connected())
-    {
-        Serial.print("[CKC] MQTT reconnect...");
-        if (!mqttClient.connect(mqttid.c_str(), mqttUser.c_str(), mqttPassword.c_str()))
-        {
-            Serial.println("FAILED");
-            return;
-        }
-        Serial.println("OK");
-    }
-    mqttClient.subscribe(Topic_r.c_str());
-}
 #endif
-

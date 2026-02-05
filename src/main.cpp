@@ -12,7 +12,6 @@ const char *MQTT_USERNAME = "hivemq.webclient.1770102461698";
 const char *MQTT_PASS = "9pf7TvU#&G3rKo<>g8DX";
 
 int timeupdate = 10000;
-
 void setup()
 {
   pinMode(26, OUTPUT);

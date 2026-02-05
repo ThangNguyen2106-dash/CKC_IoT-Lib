@@ -8,7 +8,6 @@ WiFiClientSecure client;
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org");
 unsigned long epochTime;
-
 class CKC_API
 {
 public:
@@ -27,7 +26,7 @@ private:
     String Data1, Data2, Data3, Data4, Data5;
 };
 CKC_API CKC_IoT_API;
-String CKC_API::getDateTime()
+String CKC_API::getDateTime() // lấy thời gian từ NTP khi có WiFi và chuyển về giờ UTC+7 (theo giờ VN)
 {
     timeClient.update();
     time_t epoch = timeClient.getEpochTime() + 7 * 3600;
@@ -48,14 +47,14 @@ String CKC_API::getDateTime()
     return String(buffer);
 }
 
-unsigned long CKC_API::getTime()
+unsigned long CKC_API::getTime() // cập nhật thời gian từ NTP Server khi có WiFi
 {
     if (!timeClient.update())
         return 0;
     return timeClient.getEpochTime();
 }
 
-void CKC_API::syncTime()
+void CKC_API::syncTime() // đồng bộ thời gian của hệ thống với NTP Server
 {
     if (WiFi.status() != WL_CONNECTED)
         return;
@@ -72,7 +71,7 @@ void CKC_API::syncTime()
     Serial.println("[CKC] NTP sync failed");
 }
 
-void CKC_API::begin(String sta_ssid, String sta_pass)
+void CKC_API::begin(String sta_ssid, String sta_pass) // cấu hình WiFi với tên và pass mong muốn
 {
     ssidSTA = sta_ssid;
     passSTA = sta_pass;
@@ -103,58 +102,14 @@ void CKC_API::begin(String sta_ssid, String sta_pass)
     }
 }
 
-void CKC_API::reconnectWifi(String sta_ssid, String sta_pass)
-{
-    ssidSTA = sta_ssid;
-    passSTA = sta_pass;
-    static unsigned long lastTry = 0;
-    if (millis() - lastTry < 5000)
-        return;
-    lastTry = millis();
-    if (WiFi.status() == WL_CONNECTED)
-        return;
-    if (WiFi.getMode() == WIFI_AP)
-    {
-        Serial.println("[CKC] AP mode: checking WiFi...");
-        WiFi.softAPdisconnect(true);
-        WiFi.mode(WIFI_STA);
-        WiFi.begin(ssidSTA.c_str(), passSTA.c_str());
-        unsigned long t = millis();
-        while (WiFi.status() != WL_CONNECTED &&
-               millis() - t < 5000)
-        {
-            delay(300);
-            Serial.print(".");
-        }
-        if (WiFi.status() == WL_CONNECTED)
-        {
-            Serial.println("\n[CKC] WiFi FOUND → STA CONNECTED");
-            Serial.println(WiFi.localIP());
-        }
-        else
-        {
-            Serial.println("\n[CKC] WiFi NOT FOUND → back to AP");
-            WiFi.disconnect(true);
-            WiFi.mode(WIFI_AP);
-            WiFi.softAP("ESP-AP MODE", "123456789", 1);
-        }
-    }
-    else
-    {
-        Serial.println("[CKC] STA lost → reconnecting");
-        WiFi.disconnect();
-        WiFi.begin(ssidSTA.c_str(), passSTA.c_str());
-    }
-}
-
-void CKC_API::end()
+void CKC_API::end() // buộc ngắt Wifi nếu cần thiết
 {
     WiFi.disconnect(true);
     WiFi.mode(WIFI_OFF);
     Serial.println("[CKC] WiFi stopped");
 }
 
-void CKC_API::sendDATA(String Token_, String ID_, String Data1)
+void CKC_API::sendDATA(String Token_, String ID_, String Data1) // gửi dữ liệu tới WebA API từ code mẫu
 {
     if (WiFi.status() != WL_CONNECTED)
     {
