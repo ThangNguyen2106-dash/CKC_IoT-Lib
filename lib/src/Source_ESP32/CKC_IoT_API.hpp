@@ -127,6 +127,3 @@ void CKC_API::sendDATA(String Token_, String ID_, String Data1) // gửi dữ li
     client.stop();
 }
 //-------------------------Coming Soon---------------------------//
-void CKC_API::readDATA()
-{
-}

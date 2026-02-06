@@ -1,5 +1,6 @@
-#include <CKC_IoT.h>
 #include <khaibao.h>
+#include <CKC_IoT.h>
+
 const char *Ten_WiFi = "MakerSpaceLab_2.4Ghz";
 const char *Pass_WiFi = "Maker2025";
 
@@ -11,38 +12,31 @@ const char *MQTT_USERNAME = "hivemq.webclient.1770102461698";
 const char *MQTT_PASS = "9pf7TvU#&G3rKo<>g8DX";
 
 int timeupdate = 10000;
-CKC_WRITE(V0)
-{
-  Serial.print("[V0] value = ");
-  Serial.println(value);
-}
-CKC_WRITE(V1)
-{
-  Serial.print("[V1] = ");
-  Serial.println(value);
-  digitalWrite(2, value ? HIGH : LOW);
-}
 void setup()
 {
+  pinMode(26, OUTPUT);
   Serial.begin(115200);
   CKC_IoT_MQTT.begin(Ten_WiFi, Pass_WiFi, MQTT_Server, MQTT_PORT, MQTT_ID, MQTT_USERNAME, MQTT_PASS);
-  pinMode(2, OUTPUT);
-  CKC_Virtual.attach(1, V1_handler);
 }
 void loop()
 {
   CKC_IoT_MQTT.run();
-  mqttClient.subscribe("led/2");
   static unsigned long lastSend = 0;
   if (WiFi.status() == WL_CONNECTED)
   {
+    digitalWrite(26, HIGH);
+
     if (millis() - lastSend >= timeupdate)
     {
       lastSend = millis();
       float temp = random(250, 350) / 10.0;
       float humidity = random(70, 80);
-      CKC_IoT_MQTT.sendData("NHIET_DO", String(temp));
-      CKC_IoT_MQTT.sendData("DO_AM", String(humidity));
+      CKC_IoT_MQTT.sendData("NHIET", String(temp));
+      CKC_IoT_MQTT.sendData("DO AM", String(humidity));
     }
+  }
+  else
+  {
+    digitalWrite(26, LOW);
   }
 }

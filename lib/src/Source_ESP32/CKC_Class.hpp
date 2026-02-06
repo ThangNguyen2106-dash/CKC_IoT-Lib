@@ -51,3 +51,25 @@ private:
     String Data_receive;
 };
 #endif
+
+#ifndef CKC_VIRTUALPIN_HPP
+#define CKC_VIRTUALPIN_HPP
+#include <stdint.h>
+#define MAX_VIRTUAL_PIN 20
+typedef void (*pinCallBack)(int value);
+class CKC_Virtualpin
+{
+public:
+    CKC_Virtualpin();
+    void attach(uint8_t vPin, pinCallBack cb);
+    void write(uint8_t vPin, int value);
+private:
+    pinCallBack vpCallback[MAX_VIRTUAL_PIN];
+};
+extern CKC_Virtualpin CKC_Virtual;
+#endif
+
+#ifndef CKC_BLYNK_STYLE_H
+#define CKC_BLYNK_STYLE_H
+#define CKC_WRITE(VPIN) void VPIN##_handler(int value)
+#endif

@@ -1,5 +1,21 @@
-
 #include <Source_ESP32/CKC_Class.hpp>
+#include <stdint.h>
+void mqttCallback(char *topic, byte *payload, unsigned int length)
+{
+    String msg;
+    for (int i = 0; i < length; i++)
+        msg += (char)payload[i];
+    Serial.print("[MQTT] ");
+    Serial.print(topic);
+    Serial.print(" => ");
+    Serial.println(msg);
+
+    if (String(topic) == "led/2")
+    {
+        int value = msg.toInt(); // "1" / "0"
+        CKC_Virtual.write(1, value);
+    }
+}
 WiFiClientSecure server;
 PubSubClient mqttClient(server);
 CKC_MQTT CKC_IoT_MQTT;
@@ -37,6 +53,7 @@ void CKC_MQTT::begin(String WiFiID,
         if (mqttClient.connect(mqttid.c_str(), mqttUser.c_str(), mqttPassword.c_str()))
         {
             Serial.println("OK");
+            mqttClient.setCallback(mqttCallback);
         }
         else
         {
