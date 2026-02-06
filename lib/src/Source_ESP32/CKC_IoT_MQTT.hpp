@@ -62,6 +62,7 @@ void CKC_MQTT::run() // hàm hoạt động của MQTT
     if (mqttClient.connected())
         mqttClient.loop();
 }
+
 void CKC_MQTT::sendData(String Topic_s, String Data) // gửi dữ liệu kèm theo TOPIC đến MQTT Server, đồng thời kiểm tra kết nỗi trước khi gửi
 {
     if (WiFi.status() != WL_CONNECTED)
