@@ -1,32 +1,5 @@
-#ifndef CKC_IoT_MQTT_HPP
-#define CKC_IoT_MQTT_HPP
-#include <WiFi.h>
-#include <WiFiClientSecure.h>
-#include <PubSubClient.h>
-class CKC_MQTT
-{
-private:
-    String ssidSTA;
-    String passSTA;
-    String mqttServer;
-    uint16_t mqttPort;
-    String mqttid;
-    String mqttUser;
-    String mqttPassword;
-    String Data_receive;
 
-public:
-    void begin(String WiFiID,
-               String PassWiFi,
-               String MQTT_server,
-               uint16_t MQTT_Port,
-               String MQTT_ID,
-               String MQTT_user,
-               String MQTT_pass);
-    void run();
-    void sendData(String Topic_s, String Data);
-    void receiveData(String Topic_r);
-};
+#include <Source_ESP32/CKC_Class.hpp>
 WiFiClientSecure server;
 PubSubClient mqttClient(server);
 CKC_MQTT CKC_IoT_MQTT;
@@ -48,34 +21,39 @@ void CKC_MQTT::begin(String WiFiID,
     WiFi.mode(WIFI_STA);
     WiFi.begin(ssidSTA.c_str(), passSTA.c_str());
     Serial.print("[CKC] WiFi connecting");
-    unsigned long t = millis();
-    while (WiFi.status() != WL_CONNECTED && millis() - t < 10000)
+    unsigned long startAttemptTime = millis();
+    while (WiFi.status() != WL_CONNECTED && millis() - startAttemptTime <= 10000)
     {
-        delay(500);
+        delay(1000);
         Serial.print(".");
     }
-
-    if (WiFi.status() != WL_CONNECTED)
+    if (WiFi.status() == WL_CONNECTED)
     {
-        Serial.println("\n[CKC] WiFi FAILED");
-        return;
-    }
-    Serial.println("\n[CKC] WiFi OK");
-    Serial.print("[CKC] IP: ");
-    Serial.println(WiFi.localIP());
-    server.setInsecure();
-
-    mqttClient.setServer(mqttServer.c_str(), mqttPort);
-
-    Serial.print("[CKC] MQTT connecting...");
-    if (mqttClient.connect(mqttid.c_str(), mqttUser.c_str(), mqttPassword.c_str()))
-    {
-        Serial.println("OK");
+        WiFi.mode(WIFI_STA);
+        Serial.println("[CKC] Connected! ESP32 IP: " + WiFi.localIP().toString());
+        server.setInsecure();                               // hàm cài đặt bỏ qua bước xác thực
+        mqttClient.setServer(mqttServer.c_str(), mqttPort); // set up MQTT Server với link Server và cổng PORT
+        Serial.print("[CKC] MQTT connecting...");
+        if (mqttClient.connect(mqttid.c_str(), mqttUser.c_str(), mqttPassword.c_str()))
+        {
+            Serial.println("OK");
+        }
+        else
+        {
+            Serial.print("FAILED, rc=");
+            Serial.println(mqttClient.state());
+        }
     }
     else
     {
-        Serial.print("FAILED, rc=");
-        Serial.println(mqttClient.state());
+        WiFi.mode(WIFI_AP);
+        WiFi.softAP("ESP-AP MODE", "123456789", 1);
+        IPAddress IP = WiFi.softAPIP();
+        Serial.println("\n[CKC] CAN'T CONNECT TO WiFI");
+        Serial.println("[CKC] SWITCHING TO AP MODE");
+        Serial.println("[CKC] ESP32 AP IP address: " + IP.toString());
+        Serial.println("[CKC] SSID: ESP-AP MODE");
+        Serial.println("[CKC] Pass: 123456789");
     }
 }
 
@@ -104,4 +82,3 @@ void CKC_MQTT::sendData(String Topic_s, String Data) // gửi dữ liệu kèm t
     mqttClient.publish(Topic_s.c_str(), Data.c_str());
     Serial.println("[CKC] Sent: " + Topic_s + " -> " + Data);
 }
-#endif

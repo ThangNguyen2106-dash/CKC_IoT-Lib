@@ -1,30 +1,9 @@
-#ifndef CKC_IoT_API_HPP
-#define CKC_IoT_API_HPP
-#include <WiFi.h>
-#include <HTTPClient.h>
-#include <WiFiClientSecure.h>
-#include <NTPClient.h>
+
+#include <Source_ESP32/CKC_Class.hpp>
 WiFiClientSecure client;
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org");
 unsigned long epochTime;
-class CKC_API
-{
-public:
-    CKC_API() {};
-    String getDateTime();
-    unsigned long getTime();
-    void syncTime();
-    void begin(String sta_ssid, String sta_pass);
-    void end();
-    void sendDATA(String Token_, String ID_, String Data1);
-    void readDATA();
-    void reconnectWifi(String sta_ssid, String sta_pass);
-
-private:
-    String ssidSTA, passSTA;
-    String Data1, Data2, Data3, Data4, Data5;
-};
 CKC_API CKC_IoT_API;
 String CKC_API::getDateTime() // lấy thời gian từ NTP khi có WiFi và chuyển về giờ UTC+7 (theo giờ VN)
 {
@@ -151,4 +130,3 @@ void CKC_API::sendDATA(String Token_, String ID_, String Data1) // gửi dữ li
 void CKC_API::readDATA()
 {
 }
-#endif
